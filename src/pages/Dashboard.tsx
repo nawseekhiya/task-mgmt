@@ -36,7 +36,7 @@ export function Dashboard() {
   const [deletedTaskInfo, setDeletedTaskInfo] = useState<{ task: Task; index: number } | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [confettiTrigger, setConfettiTrigger] = useState(false);
-  const [confettiOrigin, setConfettiOrigin] = useState({ x: 0, y: 0 });
+  const [confettiRect, setConfettiRect] = useState<DOMRect | null>(null);
 
   useEffect(() => {
     dispatch(fetchTasksThunk());
@@ -69,10 +69,7 @@ export function Dashboard() {
   }, [dispatch]);
 
   const handleToggleComplete = useCallback((rect: DOMRect) => {
-    setConfettiOrigin({
-      x: rect.left + rect.width / 2,
-      y: rect.top + rect.height / 2,
-    });
+    setConfettiRect(rect);
     setConfettiTrigger(true);
   }, []);
 
@@ -85,7 +82,7 @@ export function Dashboard() {
     : 0;
 
   return (
-    <div className="max-w-[42rem] mx-auto px-4 py-6 sm:py-8">
+    <div className="max-w-[42rem] mx-auto px-4 pt-10 pb-6 sm:pt-12 sm:pb-8">
       <Header completionPercent={completionPercent} />
       
       {/* Task Form comes before Filter Bar on mobile for better UX */}
@@ -130,8 +127,7 @@ export function Dashboard() {
 
       <Confetti
         trigger={confettiTrigger}
-        originX={confettiOrigin.x}
-        originY={confettiOrigin.y}
+        cardRect={confettiRect || undefined}
         onComplete={handleConfettiComplete}
       />
     </div>

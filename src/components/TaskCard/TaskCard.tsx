@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import type { Task } from '../../types';
 import { useAppDispatch } from '../../store/hooks';
 import { toggleTaskStatusThunk, deleteTaskThunk } from '../../features/tasks/tasksThunks';
@@ -15,12 +15,30 @@ interface TaskCardProps {
 export function TaskCard({ task, onDelete, onEdit, onToggleComplete, index }: TaskCardProps) {
   const dispatch = useAppDispatch();
   const cardRef = useRef<HTMLDivElement>(null);
+  const [isCelebrating, setIsCelebrating] = useState(false);
+  const [hasAnimated, setHasAnimated] = useState(false);
+
+  // Mark as animated after initial mount
+  useEffect(() => {
+    const timer = setTimeout(() => setHasAnimated(true), 500);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleToggle = () => {
-    if (task.status === 'pending' && onToggleComplete && cardRef.current) {
-      const rect = cardRef.current.getBoundingClientRect();
-      onToggleComplete(rect);
+    // Only celebrate when marking as complete (not when undoing)
+    if (task.status === 'pending') {
+      setIsCelebrating(true);
+      
+      // Trigger confetti if callback provided
+      if (onToggleComplete && cardRef.current) {
+        const rect = cardRef.current.getBoundingClientRect();
+        onToggleComplete(rect);
+      }
+      
+      // Remove celebration class after animation
+      setTimeout(() => setIsCelebrating(false), 800);
     }
+    
     dispatch(toggleTaskStatusThunk({ id: task.id, currentStatus: task.status }));
   };
 
@@ -33,7 +51,9 @@ export function TaskCard({ task, onDelete, onEdit, onToggleComplete, index }: Ta
   return (
     <div 
       ref={cardRef}
-      className="task-animate flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 bg-[var(--card)] border border-[var(--border)] rounded-xl transition-all duration-200 hover:border-[var(--accent)] hover:shadow-lg hover:shadow-[var(--accent)]/15 sm:hover:translate-x-1 group"
+      className={`${!hasAnimated ? 'task-animate' : ''} flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 bg-[var(--card)] border border-[var(--border)] rounded-xl transition-all duration-200 hover:border-[var(--accent)] hover:shadow-lg hover:shadow-[var(--accent)]/15 sm:hover:translate-x-1 group ${
+        isCelebrating ? 'task-card-celebrating border-[var(--success)]' : ''
+      }`}
       style={{ animationDelay: `${index * 50}ms` }}
     >
       {/* Top row on mobile / Left side on desktop: Status dot + Title + Badge */}
@@ -41,7 +61,7 @@ export function TaskCard({ task, onDelete, onEdit, onToggleComplete, index }: Ta
         <div 
           className={`w-2 h-2 rounded-full shrink-0 ${
             task.status === 'completed' ? 'bg-[var(--success)]' : 'bg-[var(--warning)]'
-          }`} 
+          } ${isCelebrating ? 'success-dot-pulse' : ''}`} 
         />
         <span 
           className={`text-sm font-medium flex-1 ${
@@ -80,8 +100,11 @@ export function TaskCard({ task, onDelete, onEdit, onToggleComplete, index }: Ta
             </>
           ) : (
             <>
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="20 6 9 17 4 12" />
+              <svg className={`w-4 h-4 ${isCelebrating ? 'text-[var(--success)]' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline 
+                  points="20 6 9 17 4 12" 
+                  className={isCelebrating ? 'checkmark-animate' : ''}
+                />
               </svg>
               <span className="sm:hidden">Done</span>
             </>

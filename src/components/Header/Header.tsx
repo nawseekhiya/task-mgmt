@@ -1,5 +1,7 @@
+import { useRef, useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { selectThemeMode, toggleTheme } from '../../features/theme/themeSlice';
+import { Confetti } from '../Confetti/Confetti';
 
 interface HeaderProps {
   completionPercent: number;
@@ -8,9 +10,21 @@ interface HeaderProps {
 export function Header({ completionPercent }: HeaderProps) {
   const dispatch = useAppDispatch();
   const themeMode = useAppSelector(selectThemeMode);
+  const progressBarRef = useRef<HTMLDivElement>(null);
+  const [showSparkles, setShowSparkles] = useState(false);
+  const [sparkleRect, setSparkleRect] = useState<DOMRect | undefined>(undefined);
+
+  useEffect(() => {
+    if (completionPercent === 100 && progressBarRef.current) {
+      setSparkleRect(progressBarRef.current.getBoundingClientRect());
+      setShowSparkles(true);
+    } else {
+      setShowSparkles(false);
+    }
+  }, [completionPercent]);
 
   return (
-    <header className="flex justify-between items-start mb-8">
+    <header className="flex justify-between items-start mb-8 relative">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-[var(--foreground)] relative inline-block pb-1">
           Task Dashboard
@@ -21,9 +35,14 @@ export function Header({ completionPercent }: HeaderProps) {
         </p>
         
         {/* Progress bar */}
-        <div className="w-[200px] h-1.5 bg-[var(--muted)] rounded-full overflow-hidden mt-4">
+        <div 
+          ref={progressBarRef}
+          className="w-[200px] h-1.5 bg-[var(--muted)] rounded-full overflow-hidden mt-4 relative"
+        >
           <div 
-            className="h-full rounded-full progress-shimmer transition-[width] duration-500"
+            className={`h-full rounded-full transition-[width] duration-500 ${
+              completionPercent === 100 ? 'progress-complete' : 'progress-shimmer'
+            }`}
             style={{ width: `${completionPercent}%` }}
           />
         </div>
@@ -48,6 +67,18 @@ export function Header({ completionPercent }: HeaderProps) {
           </svg>
         )}
       </button>
+
+      {/* Mini sparkles for progress bar */}
+      <Confetti
+        trigger={showSparkles}
+        cardRect={sparkleRect}
+        config={{
+          scalar: 0.5, // Half size particles
+          startVelocity: 3, // Lower velocity for smaller area
+          spread: 360
+        }}
+        onComplete={() => setShowSparkles(false)}
+      />
     </header>
   );
 }

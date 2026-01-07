@@ -33,33 +33,41 @@ export function TaskCard({ task, onDelete, onEdit, onToggleComplete, index }: Ta
   return (
     <div 
       ref={cardRef}
-      className="card p-4 flex items-center justify-between gap-4"
-      style={{ animationDelay: `${index * 0.05}s` }}
+      className="task-animate flex items-center justify-between gap-4 p-4 bg-[var(--card)] border border-[var(--border)] rounded-xl transition-all duration-200 hover:border-[var(--accent)] hover:shadow-lg hover:shadow-[var(--accent)]/15 hover:translate-x-1 group"
+      style={{ animationDelay: `${index * 50}ms` }}
     >
       {/* Left: Status dot + Title + Badge */}
-      <div className="flex items-center gap-4 flex-1 min-w-0">
+      <div className="flex items-center gap-3 min-w-0 flex-1">
         <div 
-          className={`w-2.5 h-2.5 rounded-full shrink-0 ${
-            task.status === 'completed' ? 'bg-success' : 'bg-accent'
+          className={`w-2 h-2 rounded-full shrink-0 ${
+            task.status === 'completed' ? 'bg-[var(--success)]' : 'bg-[var(--warning)]'
           }`} 
         />
         <span 
-          className={`overflow-hidden text-ellipsis whitespace-nowrap ${
-            task.status === 'completed' ? 'line-through text-muted-foreground' : ''
+          className={`text-sm font-medium truncate ${
+            task.status === 'completed' 
+              ? 'line-through text-[var(--muted-foreground)]' 
+              : 'text-[var(--foreground)]'
           }`}
         >
           {task.title}
         </span>
-        <span className={`badge badge-${task.status}`}>
+        <span 
+          className={`shrink-0 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide rounded-full ${
+            task.status === 'completed' 
+              ? 'text-emerald-600 bg-[var(--success-light)]' 
+              : 'text-amber-600 bg-[var(--warning-light)]'
+          }`}
+        >
           {task.status}
         </span>
       </div>
 
       {/* Right: Action buttons */}
-      <div className="flex items-center gap-1 shrink-0">
+      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150 sm:opacity-100">
         <button
           onClick={handleToggle}
-          className="btn-icon"
+          className="w-8 h-8 flex items-center justify-center text-[var(--muted-foreground)] rounded-md transition-all duration-150 hover:text-[var(--foreground)] hover:bg-[var(--muted)]"
           aria-label={task.status === 'completed' ? 'Mark as pending' : 'Mark as complete'}
         >
           {task.status === 'completed' ? (
@@ -75,7 +83,7 @@ export function TaskCard({ task, onDelete, onEdit, onToggleComplete, index }: Ta
         </button>
         <button
           onClick={() => onEdit(task)}
-          className="btn-icon"
+          className="w-8 h-8 flex items-center justify-center text-[var(--muted-foreground)] rounded-md transition-all duration-150 hover:text-[var(--foreground)] hover:bg-[var(--muted)]"
           aria-label="Edit task"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -85,7 +93,7 @@ export function TaskCard({ task, onDelete, onEdit, onToggleComplete, index }: Ta
         </button>
         <button
           onClick={handleDelete}
-          className="btn-icon destructive"
+          className="w-8 h-8 flex items-center justify-center text-[var(--muted-foreground)] rounded-md transition-all duration-150 hover:text-[var(--destructive)] hover:bg-[var(--destructive-light)]"
           aria-label="Delete task"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

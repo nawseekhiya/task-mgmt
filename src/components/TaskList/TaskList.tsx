@@ -15,7 +15,7 @@ export function TaskList({ tasks, onDelete, onEdit, onToggleComplete }: TaskList
   }
 
   return (
-    <div className="space-y-3">
+    <div className="flex flex-col gap-2">
       {tasks.map((task, index) => (
         <TaskCard
           key={task.id}

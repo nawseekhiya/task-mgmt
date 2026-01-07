@@ -15,24 +15,18 @@ export function FilterBar({ counts }: FilterBarProps) {
   const currentFilter = useAppSelector(selectFilter);
   const searchQuery = useAppSelector(selectSearchQuery);
 
-  const filters: { value: TaskFilter; label: string }[] = [
-    { value: 'all', label: 'All' },
-    { value: 'pending', label: 'Pending' },
-    { value: 'completed', label: 'Completed' },
+  const filters: { value: TaskFilter; label: string; count: number }[] = [
+    { value: 'all', label: 'All', count: counts.all },
+    { value: 'pending', label: 'Pending', count: counts.pending },
+    { value: 'completed', label: 'Completed', count: counts.completed },
   ];
 
-  const getCount = (filter: TaskFilter) => {
-    if (filter === 'all') return counts.all;
-    if (filter === 'pending') return counts.pending;
-    return counts.completed;
-  };
-
   return (
-    <div className="flex items-center gap-6 mb-6">
+    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
       {/* Search */}
-      <div className="relative flex-1">
+      <div className="relative flex-1 max-w-64">
         <svg 
-          className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"
+          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)] pointer-events-none"
           viewBox="0 0 24 24" 
           fill="none" 
           stroke="currentColor" 
@@ -45,25 +39,27 @@ export function FilterBar({ counts }: FilterBarProps) {
           type="text"
           value={searchQuery}
           onChange={(e) => dispatch(setSearchQuery(e.target.value))}
-          className="input pl-11 w-full"
+          className="w-full h-10 pl-10 pr-4 text-sm text-[var(--foreground)] bg-[var(--background)] border border-[var(--border)] rounded-lg outline-none transition-all duration-150 focus:border-[var(--foreground)] focus:ring-2 focus:ring-[var(--foreground)]/10 placeholder:text-[var(--muted-foreground)]"
           placeholder="Search tasks..."
         />
       </div>
 
       {/* Filter tabs */}
-      <div className="flex bg-muted rounded-full p-1">
+      <div className="flex gap-1 p-1 bg-[var(--muted)] rounded-lg">
         {filters.map((filter) => (
           <button
             key={filter.value}
             onClick={() => dispatch(setFilter(filter.value))}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium border-none cursor-pointer transition-all duration-200 ${
+            className={`flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-md cursor-pointer transition-all duration-150 ${
               currentFilter === filter.value 
-                ? 'bg-accent text-white' 
-                : 'bg-transparent text-muted-foreground hover:text-foreground'
+                ? 'bg-[var(--card)] text-[var(--foreground)] shadow-sm border-l-2 border-[var(--accent)]' 
+                : 'text-[var(--muted-foreground)] hover:text-[var(--foreground)]'
             }`}
           >
             {filter.label}
-            <span className="ml-1.5 opacity-75">{getCount(filter.value)}</span>
+            <span className="text-xs font-mono opacity-60 px-1.5 py-0.5 bg-[var(--muted)] rounded">
+              {filter.count}
+            </span>
           </button>
         ))}
       </div>

@@ -81,12 +81,12 @@ export function Dashboard() {
     : 0;
 
   return (
-    <div className="w-full max-w-[680px] mx-auto py-12 px-6">
+    <div className="max-w-[42rem] mx-auto px-4 py-8">
       <Header completionPercent={completionPercent} />
       <FilterBar counts={counts} />
       <TaskForm />
 
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-2">
         {status === 'loading' && <LoadingSkeleton />}
         
         {status === 'failed' && error && (

@@ -5,12 +5,20 @@ import {
   selectFilteredTasks, 
   selectTaskCounts, 
   selectFilter,
+  selectTasksStatus,
+  selectTasksError,
   setFilter,
-  addTask,
-  toggleTaskStatus,
   deleteTask,
+  restoreTask,
 } from './features/tasks/tasksSlice';
-import type { Task, TaskFilter } from './types';
+import { 
+  fetchTasksThunk, 
+  addTaskThunk, 
+  toggleTaskStatusThunk,
+  deleteTaskThunk,
+} from './features/tasks/tasksThunks';
+import type { TaskFilter } from './types';
+import { useState } from 'react';
 
 function App() {
   const dispatch = useAppDispatch();
@@ -18,22 +26,51 @@ function App() {
   const filteredTasks = useAppSelector(selectFilteredTasks);
   const counts = useAppSelector(selectTaskCounts);
   const currentFilter = useAppSelector(selectFilter);
+  const status = useAppSelector(selectTasksStatus);
+  const error = useAppSelector(selectTasksError);
+  
+  const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [deletedTaskInfo, setDeletedTaskInfo] = useState<{ task: any; index: number } | null>(null);
 
   // Apply theme class to html element
   useEffect(() => {
     document.documentElement.classList.toggle('dark', themeMode === 'dark');
   }, [themeMode]);
 
-  // Test: Add sample task
-  const handleAddTask = () => {
-    const newTask: Task = {
-      id: Date.now().toString(),
-      title: `New Task ${counts.all + 1}`,
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    dispatch(addTask(newTask));
+  // Fetch tasks on mount
+  useEffect(() => {
+    dispatch(fetchTasksThunk());
+  }, [dispatch]);
+
+  // Handle add task
+  const handleAddTask = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newTaskTitle.trim()) {
+      dispatch(addTaskThunk(newTaskTitle.trim()));
+      setNewTaskTitle('');
+    }
+  };
+
+  // Handle delete with undo
+  const handleDelete = (taskId: string) => {
+    const taskIndex = filteredTasks.findIndex(t => t.id === taskId);
+    const task = filteredTasks[taskIndex];
+    if (task) {
+      setDeletedTaskInfo({ task, index: taskIndex });
+      dispatch(deleteTask(taskId)); // Optimistic delete
+      dispatch(deleteTaskThunk(taskId)); // API call
+      
+      // Auto-hide after 5 seconds
+      setTimeout(() => setDeletedTaskInfo(null), 5000);
+    }
+  };
+
+  // Handle undo delete
+  const handleUndo = () => {
+    if (deletedTaskInfo) {
+      dispatch(restoreTask(deletedTaskInfo));
+      setDeletedTaskInfo(null);
+    }
   };
 
   return (
@@ -45,6 +82,16 @@ function App() {
             <h1 className="text-3xl font-bold mb-2">Task Dashboard</h1>
             <p className="text-[var(--color-muted-foreground)]">
               Manage your daily tasks efficiently
+            </p>
+            {/* Progress bar */}
+            <div className="progress-bar w-48 mt-3">
+              <div 
+                className="progress-bar-fill" 
+                style={{ width: `${counts.all > 0 ? (counts.completed / counts.all) * 100 : 0}%` }}
+              />
+            </div>
+            <p className="text-xs text-[var(--color-muted-foreground)] mt-1">
+              {counts.all > 0 ? Math.round((counts.completed / counts.all) * 100) : 0}% complete
             </p>
           </div>
           <button 
@@ -76,51 +123,86 @@ function App() {
           ))}
         </div>
 
-        {/* Add Task Button */}
-        <button onClick={handleAddTask} className="btn btn-primary mb-6">
-          + Add Task
-        </button>
+        {/* Add Task Form */}
+        <form onSubmit={handleAddTask} className="flex gap-3 mb-6">
+          <input
+            type="text"
+            value={newTaskTitle}
+            onChange={(e) => setNewTaskTitle(e.target.value)}
+            className="input flex-1"
+            placeholder="What needs to be done?"
+          />
+          <button type="submit" className="btn btn-primary">
+            + Add Task
+          </button>
+        </form>
+
+        {/* Loading State */}
+        {status === 'loading' && (
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="skeleton h-16 w-full" />
+            ))}
+          </div>
+        )}
+
+        {/* Error State */}
+        {status === 'failed' && (
+          <div className="text-center py-12">
+            <p className="text-[var(--color-destructive)] mb-4">{error}</p>
+            <button onClick={() => dispatch(fetchTasksThunk())} className="btn btn-primary">
+              Retry
+            </button>
+          </div>
+        )}
 
         {/* Task List */}
-        <div className="space-y-3">
-          {filteredTasks.length === 0 ? (
-            <div className="text-center py-12 text-[var(--color-muted-foreground)]">
-              <p>No tasks yet. Add one above!</p>
-            </div>
-          ) : (
-            filteredTasks.map((task) => (
-              <div key={task.id} className="card p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className={`badge badge-${task.status}`}>{task.status}</span>
-                  <span className={task.status === 'completed' ? 'line-through opacity-60' : ''}>
-                    {task.title}
-                  </span>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => dispatch(toggleTaskStatus(task.id))}
-                    className="btn-icon"
-                    aria-label={task.status === 'completed' ? 'Mark pending' : 'Mark complete'}
-                  >
-                    {task.status === 'completed' ? '↩️' : '✓'}
-                  </button>
-                  <button
-                    onClick={() => dispatch(deleteTask(task.id))}
-                    className="btn-icon destructive"
-                    aria-label="Delete task"
-                  >
-                    🗑️
-                  </button>
-                </div>
+        {status === 'succeeded' && (
+          <div className="space-y-3">
+            {filteredTasks.length === 0 ? (
+              <div className="text-center py-12 text-[var(--color-muted-foreground)]">
+                <p>No tasks yet. Add one above!</p>
               </div>
-            ))
-          )}
-        </div>
+            ) : (
+              filteredTasks.map((task) => (
+                <div key={task.id} className="card p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className={`badge badge-${task.status}`}>{task.status}</span>
+                    <span className={task.status === 'completed' ? 'line-through opacity-60' : ''}>
+                      {task.title}
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => dispatch(toggleTaskStatusThunk({ id: task.id, currentStatus: task.status }))}
+                      className="btn-icon"
+                      aria-label={task.status === 'completed' ? 'Mark pending' : 'Mark complete'}
+                    >
+                      {task.status === 'completed' ? '↩️' : '✓'}
+                    </button>
+                    <button
+                      onClick={() => handleDelete(task.id)}
+                      className="btn-icon destructive"
+                      aria-label="Delete task"
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
 
-        {/* Stats */}
-        <div className="mt-8 text-sm text-[var(--color-muted-foreground)]">
-          Total: {counts.all} | Pending: {counts.pending} | Completed: {counts.completed}
-        </div>
+        {/* Toast for Undo */}
+        {deletedTaskInfo && (
+          <div className="toast visible">
+            <span>Task deleted</span>
+            <button onClick={handleUndo} className="text-[var(--color-accent)] font-medium">
+              Undo
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

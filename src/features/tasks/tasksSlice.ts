@@ -1,6 +1,13 @@
 import { createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { Task, TaskFilter, TaskStatus } from '../../types';
+import {
+    fetchTasksThunk,
+    addTaskThunk,
+    updateTaskThunk,
+    deleteTaskThunk,
+    toggleTaskStatusThunk,
+} from './tasksThunks';
 
 // State shape
 interface TasksState {
@@ -81,6 +88,44 @@ const tasksSlice = createSlice({
             const { task, index } = action.payload;
             state.items.splice(index, 0, task);
         },
+    },
+    extraReducers: (builder) => {
+        // Fetch tasks
+        builder
+            .addCase(fetchTasksThunk.pending, (state) => {
+                state.status = 'loading';
+                state.error = null;
+            })
+            .addCase(fetchTasksThunk.fulfilled, (state, action) => {
+                state.status = 'succeeded';
+                state.items = action.payload;
+            })
+            .addCase(fetchTasksThunk.rejected, (state, action) => {
+                state.status = 'failed';
+                state.error = action.payload as string;
+            })
+            // Add task
+            .addCase(addTaskThunk.fulfilled, (state, action) => {
+                state.items.unshift(action.payload);
+            })
+            // Update task
+            .addCase(updateTaskThunk.fulfilled, (state, action) => {
+                const index = state.items.findIndex(t => t.id === action.payload.id);
+                if (index !== -1) {
+                    state.items[index] = action.payload;
+                }
+            })
+            // Delete task
+            .addCase(deleteTaskThunk.fulfilled, (state, action) => {
+                state.items = state.items.filter(t => t.id !== action.payload);
+            })
+            // Toggle status
+            .addCase(toggleTaskStatusThunk.fulfilled, (state, action) => {
+                const index = state.items.findIndex(t => t.id === action.payload.id);
+                if (index !== -1) {
+                    state.items[index] = action.payload;
+                }
+            });
     },
 });
 

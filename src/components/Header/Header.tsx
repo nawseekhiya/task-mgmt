@@ -14,27 +14,30 @@ export function Header({ completionPercent }: HeaderProps) {
       <div>
         <h1 className="text-3xl font-bold mb-1 relative inline-block">
           Task Dashboard
-          <span className="absolute bottom-0 left-0 w-10 h-0.5 bg-[var(--color-accent)] rounded-full" />
+          <span className="absolute -bottom-1 left-0 w-[100px] h-1 bg-accent rounded-sm" />
         </h1>
-        <p className="text-[var(--color-muted-foreground)] text-sm mt-2">
+        <p className="text-muted-foreground text-sm mt-3">
           Manage your daily tasks efficiently
         </p>
         
         {/* Progress bar */}
-        <div className="progress-bar w-48 mt-4">
-          <div 
-            className="progress-bar-fill" 
-            style={{ width: `${completionPercent}%` }}
-          />
+        <div className="flex items-center gap-3 mt-4">
+          <div className="progress-bar w-40">
+            <div 
+              className="progress-bar-fill" 
+              style={{ width: `${completionPercent}%` }}
+            />
+          </div>
+          <span className="text-sm font-mono">
+            <span className="text-accent font-semibold">{completionPercent}%</span>
+            <span className="text-muted-foreground"> complete</span>
+          </span>
         </div>
-        <p className="text-xs text-[var(--color-muted-foreground)] mt-1 font-mono">
-          <span className="text-[var(--color-accent)] font-semibold">{completionPercent}%</span> complete
-        </p>
       </div>
 
       <button 
         onClick={() => dispatch(toggleTheme())}
-        className="btn-icon hover:rotate-12 transition-transform"
+        className="w-10 h-10 rounded-lg border border-border bg-transparent flex items-center justify-center cursor-pointer text-muted-foreground transition-colors hover:border-accent"
         aria-label={`Switch to ${themeMode === 'light' ? 'dark' : 'light'} mode`}
       >
         {themeMode === 'light' ? (

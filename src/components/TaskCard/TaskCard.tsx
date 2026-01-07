@@ -17,7 +17,6 @@ export function TaskCard({ task, onDelete, onEdit, onToggleComplete, index }: Ta
   const cardRef = useRef<HTMLDivElement>(null);
 
   const handleToggle = () => {
-    // If marking as complete, trigger celebration
     if (task.status === 'pending' && onToggleComplete && cardRef.current) {
       const rect = cardRef.current.getBoundingClientRect();
       onToggleComplete(rect);
@@ -26,29 +25,38 @@ export function TaskCard({ task, onDelete, onEdit, onToggleComplete, index }: Ta
   };
 
   const handleDelete = () => {
-    dispatch(deleteTask(task.id)); // Optimistic
-    dispatch(deleteTaskThunk(task.id)); // API
+    dispatch(deleteTask(task.id));
+    dispatch(deleteTaskThunk(task.id));
     onDelete(task, index);
   };
 
   return (
     <div 
       ref={cardRef}
-      className="card p-4 flex items-center justify-between animate-slide-in"
+      className="card p-4 flex items-center justify-between gap-4"
       style={{ animationDelay: `${index * 0.05}s` }}
     >
-      <div className="flex items-center gap-3 flex-1 min-w-0">
-        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
-          task.status === 'completed' ? 'bg-[var(--color-success)]' : 'bg-[var(--color-accent)]'
-        }`} />
-        <span className={`truncate ${task.status === 'completed' ? 'line-through opacity-60' : ''}`}>
+      {/* Left: Status dot + Title + Badge */}
+      <div className="flex items-center gap-4 flex-1 min-w-0">
+        <div 
+          className={`w-2.5 h-2.5 rounded-full shrink-0 ${
+            task.status === 'completed' ? 'bg-success' : 'bg-accent'
+          }`} 
+        />
+        <span 
+          className={`overflow-hidden text-ellipsis whitespace-nowrap ${
+            task.status === 'completed' ? 'line-through text-muted-foreground' : ''
+          }`}
+        >
           {task.title}
         </span>
-        <span className={`badge badge-${task.status} flex-shrink-0`}>
+        <span className={`badge badge-${task.status}`}>
           {task.status}
         </span>
       </div>
-      <div className="flex gap-1 flex-shrink-0 ml-3">
+
+      {/* Right: Action buttons */}
+      <div className="flex items-center gap-1 shrink-0">
         <button
           onClick={handleToggle}
           className="btn-icon"

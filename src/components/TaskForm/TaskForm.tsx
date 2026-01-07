@@ -23,7 +23,7 @@ export function TaskForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-3">
+    <form onSubmit={handleSubmit} className="flex gap-4 mb-8">
       <input
         type="text"
         value={title}
@@ -40,7 +40,7 @@ export function TaskForm() {
         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M12 5v14M5 12h14" />
         </svg>
-        <span>Add Task</span>
+        <span className="ml-2">Add Task</span>
       </button>
     </form>
   );

@@ -29,22 +29,15 @@ export function Dashboard() {
   const status = useAppSelector(selectTasksStatus);
   const error = useAppSelector(selectTasksError);
   
-  // Delete/undo state
   const [deletedTaskInfo, setDeletedTaskInfo] = useState<{ task: Task; index: number } | null>(null);
-  
-  // Edit modal state
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  
-  // Confetti state
   const [confettiTrigger, setConfettiTrigger] = useState(false);
   const [confettiOrigin, setConfettiOrigin] = useState({ x: 0, y: 0 });
 
-  // Fetch tasks on mount
   useEffect(() => {
     dispatch(fetchTasksThunk());
   }, [dispatch]);
 
-  // Auto-hide toast after 5 seconds
   useEffect(() => {
     if (deletedTaskInfo) {
       const timeout = setTimeout(() => setDeletedTaskInfo(null), 5000);
@@ -52,7 +45,6 @@ export function Dashboard() {
     }
   }, [deletedTaskInfo]);
 
-  // Handlers
   const handleDelete = useCallback((task: Task, index: number) => {
     setDeletedTaskInfo({ task, index });
   }, []);
@@ -84,28 +76,17 @@ export function Dashboard() {
     setConfettiTrigger(false);
   }, []);
 
-  // Computed values
   const completionPercent = counts.all > 0 
     ? Math.round((counts.completed / counts.all) * 100) 
     : 0;
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
-      {/* Header Section */}
+    <div className="w-full max-w-[680px] mx-auto py-12 px-6">
       <Header completionPercent={completionPercent} />
-      
-      {/* Toolbar Section */}
-      <section className="mb-8">
-        <FilterBar counts={counts} />
-      </section>
-      
-      {/* Add Task Section */}
-      <section className="mb-8">
-        <TaskForm />
-      </section>
+      <FilterBar counts={counts} />
+      <TaskForm />
 
-      {/* Task List Section */}
-      <section>
+      <div className="flex flex-col gap-4">
         {status === 'loading' && <LoadingSkeleton />}
         
         {status === 'failed' && error && (
@@ -123,9 +104,8 @@ export function Dashboard() {
             onToggleComplete={handleToggleComplete}
           />
         )}
-      </section>
+      </div>
 
-      {/* Toast notification */}
       <Toast
         visible={!!deletedTaskInfo}
         message="Task deleted"
@@ -133,7 +113,6 @@ export function Dashboard() {
         onClose={() => setDeletedTaskInfo(null)}
       />
 
-      {/* Edit Modal */}
       <EditModal
         isOpen={!!editingTask}
         task={editingTask}
@@ -141,7 +120,6 @@ export function Dashboard() {
         onClose={() => setEditingTask(null)}
       />
 
-      {/* Confetti celebration */}
       <Confetti
         trigger={confettiTrigger}
         originX={confettiOrigin.x}

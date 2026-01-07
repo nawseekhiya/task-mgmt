@@ -28,11 +28,11 @@ export function FilterBar({ counts }: FilterBarProps) {
   };
 
   return (
-    <div className="flex flex-col sm:flex-row gap-4">
+    <div className="flex items-center gap-6 mb-6">
       {/* Search */}
       <div className="relative flex-1">
         <svg 
-          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-muted-foreground)]" 
+          className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"
           viewBox="0 0 24 24" 
           fill="none" 
           stroke="currentColor" 
@@ -45,25 +45,25 @@ export function FilterBar({ counts }: FilterBarProps) {
           type="text"
           value={searchQuery}
           onChange={(e) => dispatch(setSearchQuery(e.target.value))}
-          className="input pl-10"
+          className="input pl-11 w-full"
           placeholder="Search tasks..."
         />
       </div>
 
       {/* Filter tabs */}
-      <div className="flex gap-1 p-1 bg-[var(--color-muted)] rounded-full">
+      <div className="flex bg-muted rounded-full p-1">
         {filters.map((filter) => (
           <button
             key={filter.value}
             onClick={() => dispatch(setFilter(filter.value))}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
-              currentFilter === filter.value
-                ? 'bg-[var(--color-accent)] text-white shadow-sm'
-                : 'text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]'
+            className={`px-4 py-1.5 rounded-full text-sm font-medium border-none cursor-pointer transition-all duration-200 ${
+              currentFilter === filter.value 
+                ? 'bg-accent text-white' 
+                : 'bg-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
             {filter.label}
-            <span className="ml-1.5 opacity-70">{getCount(filter.value)}</span>
+            <span className="ml-1.5 opacity-75">{getCount(filter.value)}</span>
           </button>
         ))}
       </div>

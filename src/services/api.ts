@@ -4,8 +4,29 @@ import { mockTasks } from '../data/mockTasks';
 // Simulated network delay (300-500ms)
 const delay = (ms: number = 400) => new Promise(resolve => setTimeout(resolve, ms));
 
-// In-memory store (simulates backend database)
-let tasks: Task[] = [...mockTasks];
+const STORAGE_KEY = 'task-mgmt-data';
+
+// Load initial data from localStorage or fallback to mockTasks
+const loadTasks = (): Task[] => {
+    try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        return stored ? JSON.parse(stored) : [...mockTasks];
+    } catch (e) {
+        console.error('Failed to load tasks from storage', e);
+        return [...mockTasks];
+    }
+};
+
+// In-memory store (synced with localStorage)
+let tasks: Task[] = loadTasks();
+
+const saveToStorage = () => {
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+    } catch (e) {
+        console.error('Failed to save tasks to storage', e);
+    }
+};
 
 // Flag to simulate errors (for testing)
 let shouldSimulateError = false;
@@ -39,6 +60,7 @@ export const api = {
         };
 
         tasks.unshift(newTask);
+        saveToStorage();
         return newTask;
     },
 
@@ -62,6 +84,7 @@ export const api = {
         };
 
         tasks[taskIndex] = updatedTask;
+        saveToStorage();
         return updatedTask;
     },
 
@@ -79,6 +102,7 @@ export const api = {
         }
 
         tasks.splice(taskIndex, 1);
+        saveToStorage();
     },
 
     // Helper to toggle error simulation (for testing)
@@ -89,5 +113,6 @@ export const api = {
     // Helper to reset data (for testing)
     resetData() {
         tasks = [...mockTasks];
+        saveToStorage();
     },
 };

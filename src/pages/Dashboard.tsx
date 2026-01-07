@@ -81,12 +81,14 @@ export function Dashboard() {
     : 0;
 
   return (
-    <div className="max-w-[42rem] mx-auto px-4 py-8">
+    <div className="max-w-[42rem] mx-auto px-4 py-6 sm:py-8">
       <Header completionPercent={completionPercent} />
-      <FilterBar counts={counts} />
+      
+      {/* Task Form comes before Filter Bar on mobile for better UX */}
       <TaskForm />
+      <FilterBar counts={counts} />
 
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 sm:gap-2">
         {status === 'loading' && <LoadingSkeleton />}
         
         {status === 'failed' && error && (

@@ -5,6 +5,8 @@ import {
   selectTaskCounts, 
   selectTasksStatus,
   selectTasksError,
+  selectSearchQuery,
+  selectFilter,
   restoreTask,
 } from '../features/tasks/tasksSlice';
 import { fetchTasksThunk, updateTaskThunk } from '../features/tasks/tasksThunks';
@@ -28,6 +30,8 @@ export function Dashboard() {
   const counts = useAppSelector(selectTaskCounts);
   const status = useAppSelector(selectTasksStatus);
   const error = useAppSelector(selectTasksError);
+  const searchQuery = useAppSelector(selectSearchQuery);
+  const currentFilter = useAppSelector(selectFilter);
   
   const [deletedTaskInfo, setDeletedTaskInfo] = useState<{ task: Task; index: number } | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -104,6 +108,8 @@ export function Dashboard() {
             onDelete={handleDelete}
             onEdit={handleEdit}
             onToggleComplete={handleToggleComplete}
+            searchQuery={searchQuery}
+            filter={currentFilter}
           />
         )}
       </div>

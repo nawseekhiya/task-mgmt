@@ -92,17 +92,17 @@ export function EditModal({ isOpen, task, onSave, onClose }: EditModalProps) {
           </div>
 
           {/* Footer */}
-          <div className="flex justify-end gap-3 px-6 pb-6">
+          <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 px-6 pb-6">
             <button 
               type="button" 
               onClick={onClose} 
-              className="h-10 px-4 text-sm font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+              className="h-10 px-4 text-sm font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors sm:w-auto w-full rounded-lg border border-[var(--border)] sm:border-0"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="h-10 px-4 text-sm font-medium text-white bg-[var(--foreground)] rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+              className="h-10 px-4 text-sm font-medium text-white bg-[var(--foreground)] rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed sm:w-auto w-full"
               disabled={!title.trim() || title.trim() === task.title}
             >
               Save Changes

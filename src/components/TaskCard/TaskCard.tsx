@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import type { Task } from '../../types';
 import { useAppDispatch } from '../../store/hooks';
 import { toggleTaskStatusThunk, deleteTaskThunk } from '../../features/tasks/tasksThunks';
@@ -7,13 +8,20 @@ interface TaskCardProps {
   task: Task;
   onDelete: (task: Task, index: number) => void;
   onEdit: (task: Task) => void;
+  onToggleComplete?: (rect: DOMRect) => void;
   index: number;
 }
 
-export function TaskCard({ task, onDelete, onEdit, index }: TaskCardProps) {
+export function TaskCard({ task, onDelete, onEdit, onToggleComplete, index }: TaskCardProps) {
   const dispatch = useAppDispatch();
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const handleToggle = () => {
+    // If marking as complete, trigger celebration
+    if (task.status === 'pending' && onToggleComplete && cardRef.current) {
+      const rect = cardRef.current.getBoundingClientRect();
+      onToggleComplete(rect);
+    }
     dispatch(toggleTaskStatusThunk({ id: task.id, currentStatus: task.status }));
   };
 
@@ -25,6 +33,7 @@ export function TaskCard({ task, onDelete, onEdit, index }: TaskCardProps) {
 
   return (
     <div 
+      ref={cardRef}
       className="card p-4 flex items-center justify-between animate-slide-in"
       style={{ animationDelay: `${index * 0.05}s` }}
     >

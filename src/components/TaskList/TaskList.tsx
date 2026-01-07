@@ -6,9 +6,10 @@ interface TaskListProps {
   tasks: Task[];
   onDelete: (task: Task, index: number) => void;
   onEdit: (task: Task) => void;
+  onToggleComplete?: (rect: DOMRect) => void;
 }
 
-export function TaskList({ tasks, onDelete, onEdit }: TaskListProps) {
+export function TaskList({ tasks, onDelete, onEdit, onToggleComplete }: TaskListProps) {
   if (tasks.length === 0) {
     return <EmptyState />;
   }
@@ -22,6 +23,7 @@ export function TaskList({ tasks, onDelete, onEdit }: TaskListProps) {
           index={index}
           onDelete={onDelete}
           onEdit={onEdit}
+          onToggleComplete={onToggleComplete}
         />
       ))}
     </div>

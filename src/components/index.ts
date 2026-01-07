@@ -9,3 +9,4 @@ export { LoadingSkeleton } from './LoadingSkeleton/LoadingSkeleton';
 export { ErrorState } from './ErrorState/ErrorState';
 export { Toast } from './Toast/Toast';
 export { EditModal } from './EditModal/EditModal';
+export { Confetti } from './Confetti/Confetti';

@@ -1,4 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createSelector } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { Task, TaskFilter, TaskStatus } from '../../types';
 import {
@@ -152,29 +152,32 @@ export const selectFilter = (state: { tasks: TasksState }) => state.tasks.filter
 export const selectSearchQuery = (state: { tasks: TasksState }) => state.tasks.searchQuery;
 
 // Derived selector: filtered tasks
-export const selectFilteredTasks = (state: { tasks: TasksState }) => {
-    const { items, filter, searchQuery } = state.tasks;
+export const selectFilteredTasks = createSelector(
+    [selectAllTasks, selectFilter, selectSearchQuery],
+    (items, filter, searchQuery) => {
+        return items.filter(task => {
+            // Apply status filter
+            if (filter === 'pending' && task.status !== 'pending') return false;
+            if (filter === 'completed' && task.status !== 'completed') return false;
 
-    return items.filter(task => {
-        // Apply status filter
-        if (filter === 'pending' && task.status !== 'pending') return false;
-        if (filter === 'completed' && task.status !== 'completed') return false;
+            // Apply search filter
+            if (searchQuery && !task.title.toLowerCase().includes(searchQuery.toLowerCase())) {
+                return false;
+            }
 
-        // Apply search filter
-        if (searchQuery && !task.title.toLowerCase().includes(searchQuery.toLowerCase())) {
-            return false;
-        }
-
-        return true;
-    });
-};
+            return true;
+        });
+    }
+);
 
 // Count selectors
-export const selectTaskCounts = (state: { tasks: TasksState }) => {
-    const items = state.tasks.items;
-    return {
-        all: items.length,
-        pending: items.filter(t => t.status === 'pending').length,
-        completed: items.filter(t => t.status === 'completed').length,
-    };
-};
+export const selectTaskCounts = createSelector(
+    [selectAllTasks],
+    (items) => {
+        return {
+            all: items.length,
+            pending: items.filter(t => t.status === 'pending').length,
+            completed: items.filter(t => t.status === 'completed').length,
+        };
+    }
+);

@@ -49,13 +49,15 @@ interface ConfettiProps {
   onComplete?: () => void;
 }
 
+// Particle shapes
+const SHAPES: ParticleShape[] = ['circle', 'star', 'square', 'diamond', 'sparkle'];
+
 export function Confetti({ trigger, cardRect, config, onComplete }: ConfettiProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<ConfettiParticle[]>([]);
   const animationRef = useRef<number | null>(null);
+  const animateFnRef = useRef<(() => void) | null>(null);
   const triggerCountRef = useRef(0);
-
-  const shapes: ParticleShape[] = ['circle', 'star', 'square', 'diamond', 'sparkle'];
 
   // Get a random point along the card's border
   const getPointOnBorder = useCallback((rect: DOMRect): { x: number; y: number; angle: number } => {
@@ -108,7 +110,7 @@ export function Confetti({ trigger, cardRect, config, onComplete }: ConfettiProp
       gravity: 0.08 * scalar, // Scale gravity
       opacity: 1,
       decay: (0.02 + Math.random() * 0.015) * (1 / scalar), // Slower decay for smaller particles
-      shape: shapes[Math.floor(Math.random() * shapes.length)],
+      shape: SHAPES[Math.floor(Math.random() * SHAPES.length)],
       wobble: Math.random() * Math.PI * 2,
       wobbleSpeed: 0.1 + Math.random() * 0.1,
       scale: 1,
@@ -159,7 +161,7 @@ export function Confetti({ trigger, cardRect, config, onComplete }: ConfettiProp
         ctx.fill();
         break;
         
-      case 'sparkle':
+      case 'sparkle': {
         ctx.beginPath();
         const points = 4;
         for (let i = 0; i < points * 2; i++) {
@@ -173,9 +175,11 @@ export function Confetti({ trigger, cardRect, config, onComplete }: ConfettiProp
         ctx.closePath();
         ctx.fill();
         break;
+      }
     }
   }, []);
 
+  // Store animate function in ref to avoid circular dependency
   const animate = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -213,13 +217,19 @@ export function Confetti({ trigger, cardRect, config, onComplete }: ConfettiProp
     });
 
     if (particlesRef.current.length > 0) {
-      animationRef.current = requestAnimationFrame(animate);
+      // Use the ref to get the current animate function
+      animationRef.current = requestAnimationFrame(() => animateFnRef.current?.());
     } else {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       animationRef.current = null;
       onComplete?.();
     }
   }, [onComplete, drawShape]);
+
+  // Keep ref in sync via effect
+  useEffect(() => {
+    animateFnRef.current = animate;
+  }, [animate]);
 
   const triggerConfetti = useCallback((rect: DOMRect) => {
     const canvas = canvasRef.current;

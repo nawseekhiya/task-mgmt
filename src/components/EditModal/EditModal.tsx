@@ -9,24 +9,23 @@ interface EditModalProps {
 }
 
 export function EditModal({ isOpen, task, onSave, onClose }: EditModalProps) {
-  const [title, setTitle] = useState('');
-  const [renderTask, setRenderTask] = useState<Task | null>(null);
+  const renderTask = isOpen && task ? task : null;
+  const [title, setTitle] = useState(() => task?.title ?? '');
   const [isVisible, setIsVisible] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const prevIsOpenRef = useRef(false);
 
-  // Handle mount/unmount animations and data synchronization
   useEffect(() => {
-    if (isOpen && task) {
-      setRenderTask(task);
+    const wasOpen = prevIsOpenRef.current;
+    prevIsOpenRef.current = isOpen;
+
+    if (isOpen && task && !wasOpen) {
+      // Opening - sync title and visibility
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: sync state on modal open
       setTitle(task.title);
-      // Small delay to ensure render happens before transition
       requestAnimationFrame(() => setIsVisible(true));
-    } else {
+    } else if (!isOpen && wasOpen) {
       setIsVisible(false);
-      const timer = setTimeout(() => {
-        setRenderTask(null);
-      }, 200); // Match CSS duration
-      return () => clearTimeout(timer);
     }
   }, [isOpen, task]);
 
@@ -34,7 +33,6 @@ export function EditModal({ isOpen, task, onSave, onClose }: EditModalProps) {
   useEffect(() => {
     if (isVisible && inputRef.current) {
       inputRef.current.focus();
-      // Only select if it's a fresh open (avoid re-selecting on re-renders)
       if (document.activeElement !== inputRef.current) {
         inputRef.current.select();
       }

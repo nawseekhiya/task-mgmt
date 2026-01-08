@@ -15,21 +15,23 @@ export function Toast({ visible, message, onUndo, onClose }: ToastProps) {
       }`}
     >
       <span className="text-sm text-[var(--foreground)]">{message}</span>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
         {onUndo && (
           <button 
             onClick={onUndo} 
-            className="text-sm font-medium text-[var(--accent)] hover:underline px-2 py-1"
+            className="text-xs font-semibold text-[var(--accent)] bg-[var(--accent)]/5 hover:bg-[var(--accent)]/10 px-3 py-1.5 rounded-md transition-colors"
           >
             Undo
           </button>
         )}
         <button 
           onClick={onClose} 
-          className="text-[var(--muted-foreground)] hover:text-[var(--foreground)] px-1"
+          className="p-1 rounded-md text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)] transition-colors"
           aria-label="Dismiss"
         >
-          ✕
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
         </button>
       </div>
     </div>

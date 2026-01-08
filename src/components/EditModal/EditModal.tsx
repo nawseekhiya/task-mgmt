@@ -10,51 +10,68 @@ interface EditModalProps {
 
 export function EditModal({ isOpen, task, onSave, onClose }: EditModalProps) {
   const [title, setTitle] = useState('');
+  const [renderTask, setRenderTask] = useState<Task | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Handle mount/unmount animations and data synchronization
   useEffect(() => {
-    if (task) {
+    if (isOpen && task) {
+      setRenderTask(task);
       setTitle(task.title);
+      // Small delay to ensure render happens before transition
+      requestAnimationFrame(() => setIsVisible(true));
+    } else {
+      setIsVisible(false);
+      const timer = setTimeout(() => {
+        setRenderTask(null);
+      }, 200); // Match CSS duration
+      return () => clearTimeout(timer);
     }
-  }, [task]);
+  }, [isOpen, task]);
 
+  // Handle focus
   useEffect(() => {
-    if (isOpen && inputRef.current) {
+    if (isVisible && inputRef.current) {
       inputRef.current.focus();
-      inputRef.current.select();
+      // Only select if it's a fresh open (avoid re-selecting on re-renders)
+      if (document.activeElement !== inputRef.current) {
+        inputRef.current.select();
+      }
     }
-  }, [isOpen]);
+  }, [isVisible]);
 
+  // Handle escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
+      if (e.key === 'Escape' && isVisible) {
         onClose();
       }
     };
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
-  }, [isOpen, onClose]);
+  }, [isVisible, onClose]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (task && title.trim()) {
-      onSave(task.id, title.trim());
+    if (renderTask && title.trim()) {
+      onSave(renderTask.id, title.trim());
       onClose();
     }
   };
 
-  if (!task) return null;
+  if (!renderTask) return null;
 
   return (
     <div 
-      className={`fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-all duration-200 ${
-        isOpen ? 'opacity-100 visible' : 'opacity-0 invisible'
+      className={`fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-all duration-200 ease-out ${
+        isVisible ? 'opacity-100 visible' : 'opacity-0 invisible'
       }`}
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div 
-        className={`w-full max-w-md bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-xl transition-transform duration-200 ${
-          isOpen ? 'scale-100' : 'scale-95'
+        className={`w-full max-w-md bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-xl transition-all duration-200 ease-out ${
+          isVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
         }`}
         role="dialog" 
         aria-modal="true" 
@@ -103,7 +120,7 @@ export function EditModal({ isOpen, task, onSave, onClose }: EditModalProps) {
             <button
               type="submit"
               className="h-10 px-4 text-sm font-medium text-white bg-[var(--foreground)] rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed sm:w-auto w-full"
-              disabled={!title.trim() || title.trim() === task.title}
+              disabled={!title.trim() || title.trim() === renderTask.title}
             >
               Save Changes
             </button>
